@@ -49,12 +49,14 @@
           type="text"
           class="add-form-name"
           placeholder="Введите ваше имя"
+          id="name"
         />
         <textarea
           type="textarea"
           class="add-form-text"
           placeholder="Введите ваш коментарий"
           rows="4"
+          id="comments"
         ></textarea>
         <div class="add-form-row">
           <button class="add-form-button">Написать</button>
@@ -65,7 +67,56 @@
 
   <script>
     "use strict";
-    // Код писать здесь
+    
+    const nameInput = document.getElementById("name");
+    const commentInput = document.getElementById("comments");
+    
+    nameInput.addEventListener("input", () => {
+        console.log("Имя изменено");
+    });
+    
+    commentInput.addEventListener("input", () => {
+        console.log("Комментарий изменен");
+    });
+    
+    const addButton = document.querySelector(".add-form-button");
+    const commentsList = document.querySelector(".comments");
+    
+    addButton.addEventListener("click", () => {
+        const name = nameInput.value;
+        const commentText = commentInput.value;
+        
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = String(now.getFullYear()).slice(-2);
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const currentDateTime = `${day}.${month}.${year} ${hours}:${minutes}`;
+        
+        const newComment = `
+            <li class="comment">
+                <div class="comment-header">
+                    <div>${name}</div>
+                    <div>${currentDateTime}</div>
+                </div>
+                <div class="comment-body">
+                    <div class="comment-text">
+                        ${commentText}
+                    </div>
+                </div>
+                <div class="comment-footer">
+                    <div class="likes">
+                        <span class="likes-counter">0</span>
+                        <button class="like-button"></button>
+                    </div>
+                </div>
+            </li>
+        `;
+        
+        commentsList.innerHTML += newComment;
+    });
+    
     console.log("It works!");
   </script>
 </html>
