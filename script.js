@@ -1,0 +1,143 @@
+"use strict";
+
+    const personalKey = "xiloeiwqq";
+    const apiUrl = `https://wedev-api.sky.pro/api/v1/${personalKey}/comments`;
+
+    const nameInput = document.getElementById("name");
+    const commentInput = document.getElementById("comments");
+    const addButton = document.querySelector(".add-form-button");
+    const commentsList = document.querySelector(".comments");
+
+    nameInput.addEventListener("input", () => {
+      console.log("Имя изменено");
+    });
+
+    commentInput.addEventListener("input", () => {
+      console.log("Комментарий изменен");
+    });
+
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = String(date.getFullYear()).slice(-2);
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${day}.${month}.${year} ${hours}:${minutes}`;
+    };
+
+    const renderComment = (comment) => {
+      const likeButtonClass = comment.isLiked
+        ? "like-button -active-like"
+        : "like-button";
+
+      return `
+        <li class="comment">
+          <div class="comment-header">
+            <div>${comment.author.name}</div>
+            <div>${formatDate(comment.date)}</div>
+          </div>
+          <div class="comment-body">
+            <div class="comment-text">
+              ${comment.text}
+            </div>
+          </div>
+          <div class="comment-footer">
+            <div class="likes">
+              <span class="likes-counter">${comment.likes}</span>
+              <button class="${likeButtonClass}"></button>
+            </div>
+          </div>
+        </li>
+      `;
+    };
+
+    const getComments = () => {
+      return fetch(apiUrl)
+        .then((response) => response.json())
+        .then((data) => data.comments);
+    };
+
+    const renderComments = (comments) => {
+      commentsList.innerHTML = comments.map((comment) => renderComment(comment)).join("");
+    };
+
+    const fetchComments = () => {
+      return getComments()
+        .then((comments) => {
+          renderComments(comments);
+        })
+        .catch((error) => {
+          console.error("Не удалось загрузить комментарии:", error);
+        });
+    };
+
+    const addComment = (name, text) => {
+      const parseResponse = (response) =>
+        response.json().then((body) => ({ response, body }));
+
+      fetch(apiUrl, {
+        method: "POST",
+        body: JSON.stringify({
+          text: text,
+          name: name,
+        }),
+      })
+        .then(parseResponse)
+        .then(({ response, body }) => {
+          if (response.status === 201) {
+            nameInput.value = "";
+            commentInput.value = "";
+            return fetchComments();
+          }
+
+          return Promise.reject(new Error(body.error));
+        })
+        .catch((error) => {
+          if (error.message) {
+            alert(error.message);
+            return;
+          }
+
+          console.error("Не удалось добавить комментарий:", error);
+        });
+    };
+
+    commentsList.addEventListener("click", (event) => {
+      const likeButton = event.target.closest(".like-button");
+      if (!likeButton) {
+        return;
+      }
+
+      const likesCounter = likeButton
+        .closest(".likes")
+        .querySelector(".likes-counter");
+
+      if (likeButton.classList.contains("-active-like")) {
+        likeButton.classList.remove("-active-like");
+        likesCounter.textContent = Number(likesCounter.textContent) - 1;
+      } else {
+        likeButton.classList.add("-active-like");
+        likesCounter.textContent = Number(likesCounter.textContent) + 1;
+      }
+    });
+
+    addButton.addEventListener("click", () => {
+      const name = nameInput.value.trim();
+      const commentText = commentInput.value.trim();
+
+      if (name.length < 3) {
+        alert("Имя должно содержать не менее 3 символов");
+        return;
+      }
+
+      if (commentText.length < 3) {
+        alert("Комментарий должен содержать не менее 3 символов");
+        return;
+      }
+
+      addComment(name, commentText);
+    });
+
+    fetchComments();
+    console.log("It works!");
